@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Khooni Mehndi — A Desi Murder Mystery</title>
+<meta name="description" content="Mehndi ki raat, qatl ka raaz. A free desi murder mystery game — read the evidence, interrogate suspects, catch lies, name the killer.">
+<style>
+:root{
+  --paper:#f6f1e3; --paper2:#efe6cf; --card:#fffdf6; --ink:#1b140e; --muted:#6f6353;
+  --red:#b3352b; --red-dark:#8c271f; --gold:#a97e2f; --line:#d9cdae; --green:#2e7d4f;
+  --serif:Georgia,'Times New Roman',serif; --mono:ui-monospace,'Cascadia Mono','Courier New',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+  background-image:repeating-linear-gradient(0deg, rgba(120,100,60,.028) 0 1px, transparent 1px 28px);
+  padding-bottom:86px;
+}
+.wrap{max-width:720px; margin:0 auto; padding:0 16px;}
+header.top{
+  border-bottom:3px double var(--ink); padding:18px 0 14px; margin-bottom:6px; position:relative;
+}
+.kicker{font-family:var(--mono); font-size:11px; letter-spacing:3px; color:var(--red); text-transform:uppercase;}
+h1.title{font-family:var(--serif); font-size:40px; margin:6px 0 2px; letter-spacing:.5px; line-height:1;}
+.subtitle{font-family:var(--serif); font-style:italic; color:var(--muted); font-size:15px; margin:0 0 10px;}
+.case-no{font-family:var(--mono); font-size:11px; color:var(--muted); border:1px solid var(--line); display:inline-block; padding:3px 8px; border-radius:3px; background:var(--paper2);}
+.progressline{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+.pill{font-family:var(--mono); font-size:11px; background:var(--card); border:1px solid var(--line); border-radius:20px; padding:4px 10px;}
+.pill b{color:var(--red);}
+.stamp{
+  display:inline-block; font-family:var(--mono); font-weight:700; font-size:11px; letter-spacing:2px;
+  color:var(--red); border:2px solid var(--red); border-radius:4px; padding:3px 8px;
+  transform:rotate(-4deg); text-transform:uppercase; background:rgba(179,53,43,.06); white-space:nowrap;
+}
+.stamp.green{color:var(--green); border-color:var(--green); background:rgba(46,125,79,.07);}
+.stamp.gray{color:var(--muted); border-color:var(--muted); background:transparent;}
+.screen{display:none; animation:fadein .25s ease;}
+.screen.active{display:block;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+h2.sec{font-family:var(--serif); font-size:24px; margin:22px 0 4px; border-bottom:1px solid var(--line); padding-bottom:8px;}
+.sec-sub{color:var(--muted); font-size:13px; margin:0 0 14px;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 15px; margin:10px 0; box-shadow:0 1px 3px rgba(60,45,20,.08);}
+.card.tappable{cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;}
+.card.tappable:active{transform:scale(.985);}
+.card .row1{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+.card h3{font-family:var(--serif); font-size:17px; margin:0 0 4px;}
+.card p{margin:6px 0; font-size:14px; line-height:1.55;}
+.meta{font-family:var(--mono); font-size:11px; color:var(--muted);}
+.doc{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; font-family:var(--mono); font-size:13.5px; line-height:1.7; white-space:pre-wrap; box-shadow:inset 0 0 40px rgba(150,120,70,.07);}
+.doc-head{font-family:var(--sans); border-bottom:1px dashed var(--line); padding-bottom:10px; margin-bottom:12px;}
+.btn{display:inline-block; border:1px solid var(--ink); background:var(--ink); color:var(--paper); font-family:var(--sans); font-weight:600; font-size:14px; padding:11px 18px; border-radius:8px; cursor:pointer; text-align:center;}
+.btn:active{transform:scale(.97);}
+.btn-red{background:var(--red); border-color:var(--red-dark);}
+.btn-ghost{background:transparent; color:var(--ink); border:1px solid var(--line);}
+.btn-gold{background:var(--gold); border-color:#8a6420;}
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+.btn-row{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0;}
+.foldertabs{display:flex; gap:8px; overflow-x:auto; padding:4px 2px 10px; margin:0 -2px;}
+.ftab{flex:0 0 auto; font-family:var(--mono); font-size:12px; background:var(--paper2); border:1px solid var(--line); border-bottom-width:3px; border-radius:8px 8px 4px 4px; padding:9px 13px; cursor:pointer; color:var(--ink);}
+.ftab.active{background:var(--card); border-bottom-color:var(--red); font-weight:700;}
+.ftab .cnt{color:var(--muted); font-weight:400;}
+.susgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+@media(max-width:480px){.susgrid{grid-template-columns:1fr;}}
+.suscard{text-align:left; width:100%;}
+.avatar{width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:700; font-size:20px; color:#fff; flex:0 0 auto;}
+.claim{border-left:3px solid var(--line); padding:8px 12px; margin:10px 0; background:rgba(255,255,255,.5); border-radius:0 8px 8px 0; cursor:pointer;}
+.claim.lie-found{border-left-color:var(--red); background:rgba(179,53,43,.06);}
+.claim.true-found{border-left-color:var(--green); background:rgba(46,125,79,.06);}
+.claim .ct{font-size:14px; line-height:1.5;}
+.claim .chint{font-family:var(--mono); font-size:11px; color:var(--red); margin-top:6px; display:block;}
+.qa{margin:12px 0;}
+.qa button.q{display:block; width:100%; text-align:left; background:var(--paper2); border:1px solid var(--line); border-radius:8px; padding:11px 13px; margin:8px 0; font-size:14px; cursor:pointer; font-family:var(--sans);}
+.qa button.q:disabled{opacity:.55; cursor:default;}
+.qa .a{background:var(--card); border:1px dashed var(--line); border-radius:8px; padding:11px 13px; margin:-2px 0 10px; font-size:14px; line-height:1.6;}
+.qa .a .who{font-family:var(--mono); font-size:11px; color:var(--red); display:block; margin-bottom:4px; letter-spacing:1px;}
+nav.bottom{position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); display:flex; z-index:50; padding-bottom:env(safe-area-inset-bottom);}
+nav.bottom button{flex:1; background:none; border:none; padding:9px 2px 8px; font-family:var(--sans); font-size:10.5px; color:var(--muted); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative;}
+nav.bottom button .ic{font-size:18px;}
+nav.bottom button.active{color:var(--red); font-weight:700;}
+nav.bottom button .dot{position:absolute; top:6px; right:calc(50% - 20px); width:8px; height:8px; border-radius:50%; background:var(--red);}
+.modal-ov{position:fixed; inset:0; background:rgba(20,12,6,.55); z-index:100; display:none; align-items:flex-end; justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--paper); border-radius:16px 16px 0 0; max-width:720px; width:100%; max-height:88vh; overflow-y:auto; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); animation:slideup .22s ease;}
+@keyframes slideup{from{transform:translateY(40px); opacity:.5;} to{transform:none; opacity:1;}}
+.modal h3{font-family:var(--serif); margin:0 0 8px; font-size:20px;}
+.evpick{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
+@media(max-width:480px){.evpick{grid-template-columns:1fr;}}
+.evpick button{text-align:left; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:13px; cursor:pointer;}
+.evpick button:disabled{opacity:.45;}
+.pickgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0;}
+@media(max-width:480px){.pickgrid{grid-template-columns:1fr;}}
+.pick{border:2px solid var(--line); border-radius:10px; background:var(--card); padding:12px; cursor:pointer; text-align:left;}
+.pick.sel{border-color:var(--red); box-shadow:0 0 0 2px rgba(179,53,43,.25);}
+.pick h4{font-family:var(--serif); margin:0 0 4px; font-size:16px;}
+.verdict-hero{text-align:center; padding:26px 10px 10px;}
+.verdict-hero .big{font-family:var(--serif); font-size:34px; margin:10px 0 4px;}
+.rankcard{border:2px dashed var(--red); border-radius:12px; padding:18px; text-align:center; background:var(--card); margin:16px 0;}
+.rankcard .rk{font-family:var(--serif); font-size:26px; color:var(--red); margin:4px 0;}
+.scorebreak{font-family:var(--mono); font-size:12.5px; line-height:2; text-align:left; display:inline-block; margin-top:8px;}
+.solstep{margin:14px 0; padding-left:4px;}
+.solstep .cite{font-family:var(--mono); font-size:11px; color:var(--red);}
+.toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--paper); font-size:13.5px; padding:11px 18px; border-radius:24px; opacity:0; transition:all .25s ease; z-index:200; max-width:88vw; text-align:center; pointer-events:none;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.hintlist{margin:10px 0;}
+.hintlist li{margin:8px 0; font-size:14px; line-height:1.55;}
+.kv{display:flex; justify-content:space-between; font-size:13px; padding:7px 0; border-bottom:1px dotted var(--line);}
+.kv span:last-child{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right;}
+footer.game{margin:34px 0 10px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--muted); text-align:center; line-height:1.8;}
+.checkline{display:flex; align-items:center; gap:8px; font-size:13px; margin:6px 0;}
+.checkline .ck{width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line); display:inline-flex; align-items:center; justify-content:center; font-size:12px; flex:0 0 auto;}
+.checkline.done .ck{background:var(--green); border-color:var(--green); color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="kicker">Case File No. 001 &bull; Lahore</div>
+  <h1 class="title">Khooni Mehndi</h1>
+  <p class="subtitle">Mehndi ki raat, qatl ka raaz &mdash; a desi murder mystery</p>
+  <div><span class="case-no">FREE CASE &bull; NO SIGN-UP &bull; ~30 MIN</span></div>
+  <div class="progressline" id="progressline"></div>
+</header>
+<main id="app">
+  <section class="screen" id="scr-brief"></section>
+  <section class="screen" id="scr-evidence"></section>
+  <section class="screen" id="scr-suspects"></section>
+  <section class="screen" id="scr-ask"></section>
+  <section class="screen" id="scr-board"></section>
+  <section class="screen" id="scr-accuse"></section>
+  <section class="screen" id="scr-verdict"></section>
+</main>
+<footer class="game">
+  KHOONI MEHNDI &mdash; an original work of fiction. All people, places &amp; events are imaginary.<br>
+  Built for detectives who read everything. 🔍
+</footer>
+</div>
+<nav class="bottom" id="bottomnav"></nav>
+<div class="modal-ov" id="modal-ov"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+/* ================= DATA ================= */
+const FOLDERS = ["Police Report","Forensics","Photographs","Statements","Records"];
+const EVIDENCE = [
+{id:"e1", folder:"Police Report", title:"First Information Report (FIR)", tag:"FIR",
+ body:"11:15 PM — Bilal Sheikh ne report kiya: dulha Daniyal Sheikh bridal suite me sofa par behosh para hai. Mauqa-e-wardaat: koi zabardasti ke nishan nahi, darwaza andar se band nahi tha. Victim ke paas aadha piya hua kewra-sherbet ka glass. Laash 11:40 PM par hospital muntaqil — doctors ne maut ki tasdeeq ki."},
+{id:"e2", folder:"Police Report", title:"Crime Scene Photos Log", tag:"Photos log",
+ body:"12 tasaveer: (1-4) sofa aur victim ki position, (5-7) sherbet ka glass — teh me halka safed residue, (8-10) kamray ka jaiza — koi toota-phoota samaan nahi, (11-12) darwaza aur khirki — dono sahi salamat. Note: victim ke chehre par sukoon — koi dard ya haathapaai ke asaar nahi."},
+{id:"e3", folder:"Forensics", title:"Forensic Lab Report — Sherbet Glass", tag:"Lab report",
+ body:"Glass ki teh me ZOLPIDEM (neend ki goli) ke bareek pisay hue zarrat paye gaye. Victim ke khoon me lethal miqdaar. Andaza: zeher 9:30–10:00 PM ke darmiyan pilaya gaya; maut 10:45–11:15 PM ke darmiyan waqay hui. Ahem: tukray SCORED TABLETS ke hain — capsule nahi. Goli ko pees kar meethay sherbet me milaya gaya taake karwahat chhup jaye."},
+{id:"e4", folder:"Forensics", title:"Post-Mortem Summary", tag:"Post-mortem",
+ body:"Jism par koi zakham, neel ya haathapaai ke nishan nahi. Maut ki wajah: neend ki dawai ki zyadti se gehra behoshi phir dil ka ruk jana. Victim ko ehtijaj ka mauqa hi nahi mila — zeher itna meetha ghola gaya ke pata hi nahi chala."},
+{id:"e5", folder:"Photographs", title:"Photographer's Contact Sheet — 9:42 PM", tag:"9:42 photo",
+ body:"Wide shot, timestamp 9:42 PM: jhoomer performance ke dauran dance floor par bheed. Magar drinks table ke paas — bheed se hat kar — KAMRAN SHAH akela khara hai. Haath khaali, nazrein glasson par. Photographer ka note: 'yeh shot maine stage ki taraf se liya tha, table bilkul khaali ilaqa tha.'"},
+{id:"e6", folder:"Photographs", title:"Torn Photograph (Areeba's clutch)", tag:"Phati tasveer",
+ body:"Dani ki ek tasveer, beech se phaari hui — Areeba Khan ke clutch se baramad. Tasveer mehndi se ek hafte pehle ki lagti hai. Phaarne ka andaaz jazbati, jaldbaazi wala — koi sochi-samjhi harkat nahi lagti."},
+{id:"e7", folder:"Statements", title:"Waiter Aslam ka bayan", tag:"Waiter",
+ body:"'Main 9:38 pe cigarette peene bahar gaya tha, 9:45 pe wapas aaya. Drinks table par koi nahi tha, sab dance dekh rahe thay. Wapas aaya to Kami bhai wahin kharay thay — drinks table ke bilkul paas. Maine poocha chai chahiye? Unhon ne kaha nahi, bas dekh raha hun.'"},
+{id:"e8", folder:"Statements", title:"Kitchen staff ka mushtarqa bayan (3 afraad)", tag:"Kitchen",
+ body:"Bawarchi Naseer, helper Javed aur waiter Imran — teenon ka ek hi bayan: 'Farah baji 9:30 se 10 baje tak kitchen me theen. Degain chakh rahi theen, namak-mirch check kar rahi theen. Beech me kahin nahi gayin.'"},
+{id:"e9", folder:"Statements", title:"Mehmaan ka bayan — jhagra (9:15 PM)", tag:"Jhagra",
+ body:"Mehmaan Shabbir Ahmed: '9:15 pe maine Bilal ko Dani par chillatay suna — alfaaz thay: tum ne mera idea churaya! Log jama ho gaye, buzurgon ne beech-bachao karaya. Bilal ka chehra surkh tha.'"},
+{id:"e10", folder:"Records", title:"Gate Entry Log + rider ka bayan", tag:"Gate log",
+ body:"Main gate register: Sana Mir — bahar 9:35 PM, wapas 9:55 PM. Wajah: biryani ki deg late aayi thi. Delivery rider (FoodExpress, order #4417) ka bayan: 'madam ne gate par hi sign kiye, deg gin kar li. 20 minute lage.'"},
+{id:"e11", folder:"Records", title:"Bilal ke phone records", tag:"Call records",
+ body:"Telecom record: Bilal Sheikh → DJ vendor (0321-XXXXXXX), call 9:38–9:52 PM (14 min). Tower location: farmhouse Bedian Road. DJ ka bayan: 'sound me masla tha, Bilal bhai neeche lawn me kharay hidayat de rahe thay.'"},
+{id:"e12", folder:"Records", title:"Videographer ka stage log", tag:"Stage video",
+ body:"Stage camera log: Areeba Khan 9:30 PM se 10:05 PM tak MUSALSAL stage par — jhoomer performance, phir group photo. Camera kabhi band nahi hua. Neeche utarne ka koi waqfa nahi."},
+{id:"e13", folder:"Records", title:"Bank statements — SwiftKart account", tag:"Bank",
+ body:"Company account se 3 mah me 6 transfers — kul Rs. 2.3 CRORE — us account me jo KAMRAN SHAH ke control me hai (signatory: K. Shah). Har transfer jhooti 'vendor payment' ke naam par. Aakhri transfer: mehndi se 2 din pehle."},
+{id:"e14", folder:"Records", title:"Dani ka unsent email (draft)", tag:"Draft email",
+ body:"To: wakeel@...  Date: 5:40 PM (mehndi wali shaam). 'Subject: urgent — meeting after wedding. Kami company se chori kar raha hai. Aaj us se samna kiya hai. Usne inkaar kiya. Shaadi ke baad hum police ke paas jayenge. Saboot mehfooz hain. — Dani'  Email BHEJA NAHI GAYA."},
+{id:"e15", folder:"Records", title:"Pharmacy record — Zolpidem prescription", tag:"Pharmacy",
+ body:"City Pharmacy record: Kamran Shah ko 3 haftay pehle ZOLPIDEM 10mg, 30 tablets (neend ke liye). Police ne uski gari se botal baramad ki: 22 goliyan baqi = 8 GHAYB. Lab note: glass ke tukray isi brand ki scored tablets se match karte hain."},
+{id:"e16", folder:"Records", title:"Sana ka text message (6:12 PM)", tag:"Dhamki",
+ body:"6:12 PM, Sana Mir → Dani Sheikh: 'Payment rok ke tum ne ghalat kiya. You'll regret this.' Dani ka jawab: 'Decor average tha. Baat khatam.'"}
+];
+const SUSPECTS = [
+{id:"s1", name:"Areeba Khan", role:"The Bride", age:26, color:"#a97e2f", init:"AK",
+ bio:"Dani se 2 saal se mangni. Fashion designer. Mehndi ki raat sab se zyada khush nazar aane wali larki — ya sab se achi adakara?",
+ motive:"Dani ke ex ko bheje gaye texts ka inkishaaf — dhoka? Clutch me phati tasveer.",
+ claims:[
+  {id:"c1a", text:"Main 9:30 se 10:05 tak stage se neeche hi nahi utri.", lie:false, contra:null, note:"Stage video (e12) iski tasdeeq karta hai — 200 mehmaan gawah."},
+  {id:"c1b", text:"Tasveer maine phaari thi — honeymoon par behes hui thi, Dubai vs Maldives. Bewaqoofi thi, manti hun.", lie:false, contra:null, note:"Jazbati harkat ka iqraar — qatl se koi talluq nahi."}
+ ],
+ questions:[
+  {q:"Dani se aakhri baar kab baat hui thi?", a:"9:20 pe... stage par jaane se pehle. Usne kaha tha: tum aaj chaand lag rahi ho. (aankhein bhar aati hain)"},
+  {q:"Clutch me phati hui tasveer ka kya matlab hai?", a:"Haan, maine phaari thi. Honeymoon par behes hui thi — wo Dubai chahta tha, main Maldives. Chhoti si bewakoofi thi. (halki hansi)"},
+  {q:"Kisi par shak hai tumhein?", a:"Shak? Main... main kuch soch nahi pa rahi. Bas itna pata hai — maine kuch nahi kiya."}
+ ]},
+{id:"s2", name:"Bilal Sheikh", role:"The Brother", age:24, color:"#4a6fa5", init:"BS",
+ bio:"Dani ka chhota bhai. Startup me junior role. Sab kehte hain 'Dani ka saya' — aur saya kabhi kabhi thak jata hai.",
+ motive:"9:15 PM par sab ke saamne jhagra: 'tum ne mera idea churaya!' Business share ka lalach?",
+ claims:[
+  {id:"c2a", text:"Mera Dani se koi jhagra nahi hua us raat.", lie:true, contra:"e9", note:"Mehmaan ke bayan (e9) ne jhagra suna — 9:15 PM, alfaaz: tum ne mera idea churaya!"},
+  {id:"c2b", text:"9:38 se 9:52 tak main DJ vendor se phone par tha.", lie:false, contra:null, note:"Call records (e11) tasdeeq karte hain — 14 minute ki call, farmhouse tower."}
+ ],
+ questions:[
+  {q:"9:15 wale jhagre ki asal wajah kya thi?", a:"Wo... purani baat thi. Startup ka idea mera tha, credit usne le liya. Gusse me keh diya. Bhai tha mera, yaar... (nazrein jhuka leta hai)"},
+  {q:"9:38 se 9:52 tak tum kahan thay?", a:"DJ se phone par tha — sound ka masla tha. Neeche lawn me khara tha. Records check kar lo, mujhe koi dar nahi."},
+  {q:"Dani ki maut ka faida kise hoga?", a:"(lambi khamoshi) ...Business me mera share barh jayega. Yehi soch rahe ho na tum bhi?"}
+ ]},
+{id:"s3", name:"Sana Mir", role:"The Wedding Planner", age:31, color:"#7a4a8c", init:"SM",
+ bio:"Lahore ki mashhoor wedding planner. Dani ne uski final payment Rs. 8 lakh rok rakhi thi — aur usne dhamki-aamez text bhi bheja tha.",
+ motive:"Roki hui payment (Rs. 8 lakh) + bheji hui dhamki: You'll regret this.",
+ claims:[
+  {id:"c3a", text:"Maine Dani ko koi dhamki nahi di.", lie:true, contra:"e16", note:"6:12 PM ka text (e16): You'll regret this. Gusse ka izhaar — magar qatl ka saboot nahi."},
+  {id:"c3b", text:"9:35 se 9:55 tak main main gate par thi — biryani ki late delivery le rahi thi.", lie:false, contra:null, note:"Gate log + rider ka bayan (e10) — 20 minute gate par, drinks table se door."}
+ ],
+ questions:[
+  {q:"Dani ne tumhari payment kyun roki thi?", a:"Usne kaha decor 'average' tha. AVERAGE! Teen mah ki mehnat! Rs. 8 lakh rok liye usne."},
+  {q:"'You'll regret this' — ye tum ne likha tha?", a:"(ghabra kar) Wo... gusse me likh diya tha! Matlab kaam ka regret tha! Main qatil nahi hun, samjhe tum?!"},
+  {q:"9:35 se 9:55 tak tum kahan theen?", a:"Main gate par! Biryani ki deg late aayi thi, rider se sign liye. Gate register me dekho!"}
+ ]},
+{id:"s4", name:"Kamran Shah", role:"The Best Friend", age:29, color:"#b3352b", init:"KS",
+ bio:"Dani ka bachpan ka dost aur SwiftKart ka co-founder. Har tasveer me Dani ke saath — har khushi me shareek. Ya... har raaz me?",
+ motive:"???",
+ claims:[
+  {id:"c4a", text:"Main 9:30 se 10 baje tak dance floor par tha — sab ke saath.", lie:true, contra:"e5", note:"9:42 PM ki photo (e5): Kami drinks table ke paas akela — dance floor par nahi."},
+  {id:"c4b", text:"Maine Dani ke sherbet ko haath bhi nahi lagaya.", lie:true, contra:"e7", note:"Waiter Aslam (e7): 9:45 par Kami drinks table ke bilkul paas khara tha."},
+  {id:"c4c", text:"Company ke paison ka hisaab sab Dani dekhta tha — mujhe kuch nahi pata.", lie:true, contra:"e13", note:"Bank statements (e13): Rs. 2.3 crore us account me jo Kami control karta hai."}
+ ],
+ questions:[
+  {q:"Dani se aakhri mulaqat kab hui?", a:"Shaam ko... 6 baje ke qareeb. Gale lagaya, kaha 'kal se nayi zindagi'. (muskurata hai — thodi zyada hi pur-sukoon)"},
+  {q:"9:30 se 10 baje tak tum kahan thay?", a:"Dance floor par! Sab thay wahan — kisi se bhi pooch lo! (jawaz me halki ghabrahat)"},
+  {q:"Company ke accounts ka kya scene hai?", a:"Sab Dani dekhta tha. Main product dekhta tha. Paison ka mujhe... kuch khaas nahi pata."}
+ ]},
+{id:"s5", name:"Farah Sheikh", role:"The Stepmother", age:52, color:"#5a6e4a", init:"FS",
+ bio:"Dani ke walid ki dusri biwi. Walid ke inteqal ke baad Dani ne will badal di — Farah ka business share khatam ho gaya.",
+ motive:"Badli hui will — business share se mehroomi.",
+ claims:[
+  {id:"c5a", text:"9:30 se 10 baje tak main kitchen me thi — degain chakh rahi thi.", lie:false, contra:null, note:"Teen staff members (e8) — kitchen se bahar nahi gayin."},
+  {id:"c5b", text:"Neend ki goliyon ke baare me mujhe kuch nahi pata — main dil ki mareez hun.", lie:false, contra:null, note:"Koi pharmacy record nahi — iske khilaaf koi saboot nahi."}
+ ],
+ questions:[
+  {q:"Will badalne par kya mehsoos kiya tha?", a:"Dukh hua tha. Lekin wo mera beta tha — sautela sahi, beta tha. Paisa aulaad se barh kar nahi hota."},
+  {q:"9:30 se 10 tak tum kahan theen?", a:"Kitchen me, deg chakh rahi thi. Bawarchi gawah hain. Mehndi ka khana meri zimmedari thi."},
+  {q:"Kya tum neend ki goliyan leti ho?", a:"Nahi! Meri dawaiyan dil ki hain. Neend ki goli ko maine kabhi haath nahi lagaya."}
+ ]}
+];
+const HINTS = [
+ "Kami ke daway ('dance floor par tha') ko 9:42 wali photo ke aamnay-saamnay rakho. Tasveer jhoot nahi bolti.",
+ "Zeher neend ki goliyon ka tha. Pharmacy record dekho — prescription kis ke naam par hai?",
+ "Dani ne shaam 5:40 par ek email likha tha jo kabhi bheja nahi gaya. Drafts me chhupa raaz dekho."
+];
+const METHODS = ["Neend ki goliyan (Zolpidem) sherbet me", "Chaaqu se waar", "Gala ghont kar"];
+const MOTIVES = ["Company se chori chhupana", "Virasat / will ka jhagra", "Jalan aur dhoka", "Roki hui payment ka badla"];
+const KILLER = "s4", TRUE_METHOD = 0, TRUE_MOTIVE = 0;
+const RANKS = [[750,"SSP — Super Sleuth"],[600,"Inspector"],[400,"Sub-Inspector"],[250,"Constable"],[0,"Chowkidar"]];
+/* ================= ENGINE ================= */
+const $ = id => document.getElementById(id);
+const LSKEY = "khooni_mehndi_v1";
+function freshState(){ return {examined:[], asked:{}, found:[], verified:[], pinned:[], hints:[], accused:null, method:null, motive:null, done:false}; }
+function loadState(){ try{ const s = JSON.parse(localStorage.getItem(LSKEY)); return (s && s.examined) ? s : freshState(); }catch(e){ return freshState(); } }
+function save(){ try{ localStorage.setItem(LSKEY, JSON.stringify(S)); }catch(e){} }
+let S = (typeof localStorage !== "undefined") ? loadState() : freshState();
+
+/* ---------- pure logic (testable, no DOM) ---------- */
+function getEv(eid){ return EVIDENCE.find(e=>e.id===eid); }
+function getSus(sid){ return SUSPECTS.find(s=>s.id===sid); }
+function getClaim(cid){ for(const s of SUSPECTS){ const c = s.claims.find(c=>c.id===cid); if(c) return {claim:c, sus:s}; } return null; }
+function totalQuestions(){ return SUSPECTS.reduce((n,s)=>n+s.questions.length,0); }
+function askedCount(st){ return Object.values(st.asked).reduce((n,a)=>n+a.length,0); }
+function canAccuse(st){ return st.examined.length>=EVIDENCE.length && askedCount(st)>=totalQuestions(); }
+function checkChallenge(st, cid, eid){
+  const g = getClaim(cid); if(!g) return {result:"bad"};
+  if(st.found.includes(cid)) return {result:"already"};
+  if(!g.claim.lie){ if(!st.verified.includes(cid)) st.verified.push(cid); return {result:"true-claim"}; }
+  if(g.claim.contra===eid){ st.found.push(cid); return {result:"hit", points:100}; }
+  return {result:"miss"};
+}
+function calcVerdict(st){
+  let score = st.found.length*100 - st.hints.length*25;
+  const brk = [{label:"Jhoot pakray ("+st.found.length+"/5)", pts:st.found.length*100}];
+  if(st.hints.length) brk.push({label:"Hints ("+st.hints.length+")", pts:-st.hints.length*25});
+  const killerOk = st.accused===KILLER, methodOk = st.method===TRUE_METHOD, motiveOk = st.motive===TRUE_MOTIVE;
+  if(killerOk){ score+=200; brk.push({label:"Qatil durust", pts:200}); }
+  if(methodOk){ score+=50; brk.push({label:"Tareeqa durust", pts:50}); }
+  if(motiveOk){ score+=50; brk.push({label:"Motive durust", pts:50}); }
+  score = Math.max(0, score);
+  let rank = RANKS[RANKS.length-1][1];
+  for(const [min,r] of RANKS){ if(score>=min){ rank=r; break; } }
+  return {killerOk, methodOk, motiveOk, score, rank, brk};
+}
+function progressInfo(st){
+  return {ev:st.examined.length+"/"+EVIDENCE.length, q:askedCount(st)+"/"+totalQuestions(), lies:st.found.length+"/5", hints:(3-st.hints.length)+" left"};
+}
+
+/* ---------- UI helpers ---------- */
+let toastT=null;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2400); }
+function openModal(html){ $("modal").innerHTML=html; $("modal-ov").classList.add("open"); }
+function closeModal(){ $("modal-ov").classList.remove("open"); }
+const NAV=[["brief","📁","File"],["evidence","🔬","Saboot"],["suspects","👥","Mulzim"],["ask","💬","Sawal"],["board","📌","Board"],["accuse","⚖️","Ilzaam"]];
+let cur="brief", curSuspect=null, curFolder=FOLDERS[0], curAskSus="s1";
+function show(name){
+  cur=name;
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $("scr-"+name).classList.add("active");
+  document.querySelectorAll("#bottomnav button").forEach(b=>b.classList.toggle("active", b.dataset.scr===name));
+  ({brief:renderBrief,evidence:renderEvidence,suspects:renderSuspects,ask:renderAsk,board:renderBoard,accuse:renderAccuse,verdict:renderVerdict}[name])();
+  window.scrollTo({top:0});
+}
+function renderNav(){
+  const locked = !canAccuse(S) && !S.done;
+  $("bottomnav").innerHTML = NAV.map(([id,ic,lb])=>{
+    const dot = (id==="accuse"&&locked) ? '<span class="dot"></span>' : '';
+    return `<button data-scr="${id}" class="${id===cur?'active':''}"><span class="ic">${ic}</span>${lb}${dot}</button>`;
+  }).join("");
+  document.querySelectorAll("#bottomnav button").forEach(b=>b.onclick=()=>{
+    if(b.dataset.scr==="accuse" && !canAccuse(S) && !S.done){ show("accuse"); toast("Pehle sab saboot parho aur sab se sawal karo 🔒"); return; }
+    if(b.dataset.scr==="verdict"){ return; }
+    show(b.dataset.scr);
+  });
+}
+function renderProgress(){
+  const p=progressInfo(S);
+  $("progressline").innerHTML =
+    `<span class="pill">Saboot <b>${p.ev}</b></span><span class="pill">Sawal <b>${p.q}</b></span>`+
+    `<span class="pill">Jhoot pakray <b>${p.lies}</b></span><span class="pill">Score <b>${S.done?calcVerdict(S).score:(S.found.length*100 - S.hints.length*25)}</b></span>`;
+  renderNav();
+}
+/* ---------- screens ---------- */
+function renderBrief(){
+  $("scr-brief").innerHTML = `
+  <h2 class="sec">Case Briefing</h2>
+  <p class="sec-sub">Saturday, 4th October &mdash; Mehndi night, Sheikh farmhouse, Bedian Road, Lahore</p>
+  <div class="card">
+    <div class="row1"><h3>👰‍♂️🤵 The Victim</h3><span class="stamp">Homicide</span></div>
+    <p><b>Daniyal &ldquo;Dani&rdquo; Sheikh, 29</b> — groom-to-be, co-founder of SwiftKart. Found at <b>11:15 PM</b> in the bridal suite, slumped on the sofa. Beside him: a half-finished glass of <b>kewra-sherbet</b>. No wounds. No forced entry. 300 guests danced all night — and nobody saw a thing.</p>
+    <div class="kv"><span>Cause of death</span><span>Zolpidem overdose (neend ki goliyan)</span></div>
+    <div class="kv"><span>Zeher kab pilaya gaya</span><span>9:30 &ndash; 10:00 PM</span></div>
+    <div class="kv"><span>Suspects</span><span>5 &mdash; sirf ek qatil</span></div>
+  </div>
+  <div class="card">
+    <h3>🕵️ Kaise khelein — 4 steps</h3>
+    <p><b>1. Parho</b> — Saboot wale tab me har file kholo. Har file parhne par <span class="stamp gray" style="font-size:10px;">Examined</span> lagega.<br>
+    <b>2. Poochho</b> — Sawal tab me har mulzim se 3 sawal karo. Unke <b>daway</b> ghor se parho — koi jhoot bol raha hai.<br>
+    <b>3. Pakro</b> — Kisi daway par tap kar ke use <b>saboot se challenge</b> karo. Jhoot pakra = <b>+100 pts</b>.<br>
+    <b>4. Ilzaam</b> — Sab mukammal ho to <b>sirf EK</b> accusation: qatil + tareeqa + motive. Score = rank.</p>
+    <div class="btn-row"><button class="btn" onclick="show('evidence')">Tafteesh shuru karo →</button>
+    <button class="btn btn-ghost" onclick="showHint()">💡 Hint chahiye?</button></div>
+  </div>
+  <div class="card">
+    <h3>⚠️ Detective ke usool</h3>
+    <p class="meta" style="font-size:13px; line-height:1.7;">Jhoot bolna jurm nahi — qatl hai. Koi dawa jhoota nikle to khush ho, magar faisla sirf <b>motive + means + opportunity</b> teenon par karo. Be-gunah ko phansana asli qatil ko azaad chhorne jaisa hai.</p>
+  </div>`;
+}
+function renderEvidence(){
+  const counts = FOLDERS.map(f=>{ const items=EVIDENCE.filter(e=>e.folder===f); const n=items.filter(e=>S.examined.includes(e.id)).length; return {f,n,t:items.length}; });
+  $("scr-evidence").innerHTML = `
+  <h2 class="sec">Saboot — Evidence Files</h2>
+  <p class="sec-sub">Har file kholo. Jhoot pakarne ke liye saboot tumhara hathiyar hai.</p>
+  <div class="foldertabs">${counts.map(c=>`<button class="ftab ${c.f===curFolder?'active':''}" data-f="${c.f}">${c.f} <span class="cnt">${c.n}/${c.t}</span></button>`).join("")}</div>
+  <div id="evlist">${EVIDENCE.filter(e=>e.folder===curFolder).map(e=>{
+    const ex=S.examined.includes(e.id), pin=S.pinned.includes(e.id);
+    return `<div class="card tappable" data-ev="${e.id}"><div class="row1"><div><h3>${e.title}</h3><div class="meta">${e.folder} &bull; ${e.tag}</div></div><div>${ex?'<span class="stamp green">Examined</span>':''}${pin?' <span class="stamp">📌</span>':''}</div></div></div>`;
+  }).join("")}</div>`;
+  document.querySelectorAll(".ftab").forEach(b=>b.onclick=()=>{curFolder=b.dataset.f; renderEvidence();});
+  document.querySelectorAll("[data-ev]").forEach(c=>c.onclick=()=>openEvidence(c.dataset.ev));
+}
+function openEvidence(eid){
+  const e=getEv(eid);
+  if(!S.examined.includes(eid)){ S.examined.push(eid); save(); }
+  const pinned=S.pinned.includes(eid);
+  openModal(`
+    <div class="doc-head"><span class="stamp gray">Evidence</span><h3 style="margin:8px 0 2px;">${e.title}</h3><div class="meta">${e.folder} &bull; ${e.tag}</div></div>
+    <div class="doc">${e.body}</div>
+    <div class="btn-row">
+      <button class="btn ${pinned?'btn-ghost':''}" id="m-pin">${pinned?'📌 Pinned — hatao':'📌 Board par pin karo'}</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Band karo</button>
+    </div>`);
+  $("m-pin").onclick=()=>{
+    const i=S.pinned.indexOf(eid);
+    if(i>=0) S.pinned.splice(i,1); else S.pinned.push(eid);
+    save(); closeModal(); renderEvidence(); renderProgress();
+    toast(i>=0?"Pin hata diya":"Board par pin ho gaya 📌");
+  };
+  renderProgress();
+}
+function renderSuspects(){
+  if(curSuspect){ renderSuspectDetail(curSuspect); return; }
+  $("scr-suspects").innerHTML = `
+  <h2 class="sec">Mulziman — 5 Suspects</h2>
+  <p class="sec-sub">Har card kholo: bio, motive, aur unke daway. Dawa par tap kar ke challenge karo.</p>
+  <div class="susgrid">${SUSPECTS.map(s=>{
+    const foundN=s.claims.filter(c=>S.found.includes(c.id)).length;
+    return `<button class="card tappable suscard" data-sus="${s.id}">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <div class="avatar" style="background:${s.color}">${s.init}</div>
+        <div><h3 style="margin:0;">${s.name}</h3><div class="meta">${s.role} &bull; ${s.age} yrs</div></div>
+      </div>
+      <p class="meta" style="margin:8px 0 0;">Motive: ${s.motive}</p>
+      ${foundN?`<div style="margin-top:6px;"><span class="stamp">${foundN} jhoot pakra</span></div>`:""}
+    </button>`;
+  }).join("")}</div>`;
+  document.querySelectorAll("[data-sus]").forEach(b=>b.onclick=()=>{curSuspect=b.dataset.sus; renderSuspects();});
+}
+function renderSuspectDetail(sid){
+  const s=getSus(sid);
+  $("scr-suspects").innerHTML = `
+  <div class="btn-row" style="margin-top:16px;"><button class="btn btn-ghost" onclick="curSuspect=null;renderSuspects()">← Wapas</button></div>
+  <div class="card"><div class="row1">
+    <div style="display:flex; gap:12px; align-items:center;"><div class="avatar" style="background:${s.color}">${s.init}</div>
+    <div><h3 style="margin:0;">${s.name}</h3><div class="meta">${s.role} &bull; ${s.age} yrs</div></div></div>
+  </div>
+  <p>${s.bio}</p>
+  <div class="kv"><span>Mutawaqqa motive</span><span>${s.motive}</span></div></div>
+  <h2 class="sec">Daway — tap kar ke challenge karo</h2>
+  <p class="sec-sub">Jhoot lagay? Dawa par tap karo, phir wo saboot chuno jo isay kaat-ta hai. +100 pts</p>
+  ${s.claims.map(c=>{
+    const f=S.found.includes(c.id), v=S.verified.includes(c.id);
+    const cls=f?"lie-found":(v?"true-found":"");
+    const tag=f?'<span class="chint">✔ JHOOT PAKRA — '+getEv(c.contra).tag+'</span>':(v?'<span class="chint" style="color:var(--green)">✔ Tasdeeq shuda — sach</span>':'<span class="chint">Tap kar ke challenge karo →</span>');
+    return `<div class="claim ${cls}" data-claim="${c.id}"><div class="ct">“${c.text}”</div>${tag}</div>`;
+  }).join("")}
+  <div class="btn-row"><button class="btn" onclick="curAskSus='${s.id}';show('ask')">💬 ${s.name} se sawal karo</button></div>`;
+  document.querySelectorAll("[data-claim]").forEach(el=>el.onclick=()=>openChallenge(el.dataset.claim));
+}
+function openChallenge(cid){
+  const g=getClaim(cid);
+  if(S.found.includes(cid)){ toast("Ye jhoot pehle hi pakra ja chuka hai ✔"); return; }
+  const examined=EVIDENCE.filter(e=>S.examined.includes(e.id));
+  if(!examined.length){ toast("Pehle koi saboot parho, phir challenge karo"); return; }
+  openModal(`
+    <span class="stamp gray">Challenge</span>
+    <h3 style="margin:8px 0;">“${g.claim.text}”</h3>
+    <p class="meta">— ${g.sus.name}. Kaun sa saboot is daway ko kaat-ta hai?</p>
+    <div class="evpick">${examined.map(e=>`<button data-pick="${e.id}"><b>${e.title}</b><br><span class="meta">${e.tag}</span></button>`).join("")}</div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Rehne do</button></div>`);
+  document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{
+    const r=checkChallenge(S,cid,b.dataset.pick);
+    save(); closeModal();
+    if(r.result==="hit"){ toast("🎯 JHOOT PAKRA! +100 pts"); }
+    else if(r.result==="true-claim"){ toast("✔ Yeh dawa sach nikla — saboot match karta hai"); }
+    else { toast("❌ Yeh saboot is daway ko nahi kaat-ta. Dobara socho."); }
+    renderSuspects(); renderBoard(); renderProgress();
+  });
+}
+function renderAsk(){
+  const s=getSus(curAskSus);
+  const asked=S.asked[s.id]||[];
+  $("scr-ask").innerHTML=`
+  <h2 class="sec">Tafteesh — Interrogation</h2>
+  <p class="sec-sub">Mulzim chuno, sawal karo. Jawabat me chhupay daway bhi mil sakte hain.</p>
+  <div class="foldertabs">${SUSPECTS.map(x=>{
+    const n=(S.asked[x.id]||[]).length;
+    return `<button class="ftab ${x.id===s.id?'active':''}" data-as="${x.id}">${x.name.split(" ")[0]} <span class="cnt">${n}/${x.questions.length}</span></button>`;
+  }).join("")}</div>
+  <div class="card"><div style="display:flex; gap:12px; align-items:center;">
+    <div class="avatar" style="background:${s.color}">${s.init}</div>
+    <div><h3 style="margin:0;">${s.name}</h3><div class="meta">${s.role}</div></div></div></div>
+  <div class="qa">${s.questions.map((qa,i)=>{
+    const done=asked.includes(i);
+    return `<button class="q" data-q="${i}" ${done?"disabled":""}>${done?"✔ ":"❓ "}${qa.q}</button>
+    ${done?`<div class="a"><span class="who">${s.name.toUpperCase()}</span>${qa.a}</div>`:""}`;
+  }).join("")}</div>`;
+  document.querySelectorAll("[data-as]").forEach(b=>b.onclick=()=>{curAskSus=b.dataset.as; renderAsk();});
+  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.q; const arr=S.asked[s.id]=S.asked[s.id]||[];
+    if(!arr.includes(i)) arr.push(i);
+    save(); renderAsk(); renderProgress();
+  });
+}
+function renderBoard(){
+  const pins=S.pinned.map(getEv).filter(Boolean);
+  const lies=S.found.map(cid=>{ const g=getClaim(cid); return {...g, ev:getEv(g.claim.contra)}; });
+  $("scr-board").innerHTML=`
+  <h2 class="sec">📌 Evidence Board</h2>
+  <p class="sec-sub">Tumhara detective board — pinned saboot aur pakray gaye jhoot, ek jagah.</p>
+  <h3 style="font-family:var(--serif);">Pinned Saboot (${pins.length})</h3>
+  ${pins.length?pins.map(e=>`<div class="card"><div class="row1"><div><h3>${e.title}</h3><div class="meta">${e.tag}</div></div><button class="btn btn-ghost" style="padding:6px 12px; font-size:12px;" data-unpin="${e.id}">Hatao</button></div></div>`).join(""):'<p class="meta">Abhi khaali hai — kisi saboot ko kholo aur “Board par pin karo” dabao.</p>'}
+  <h3 style="font-family:var(--serif); margin-top:22px;">🎯 Pakray Gaye Jhoot (${lies.length}/5)</h3>
+  ${lies.length?lies.map(l=>`<div class="card" style="border-left:3px solid var(--red);"><p style="margin:0 0 6px;"><b>${l.sus.name}:</b> “${l.claim.text}”</p><div class="meta">Kaata gaya: <b style="color:var(--red);">${l.ev.title}</b> (${l.ev.tag}) — ${l.claim.note}</div></div>`).join(""):'<p class="meta">Abhi koi jhoot nahi pakra — Mulzim tab me daway challenge karo.</p>'}
+  <div class="card" style="background:var(--paper2);"><p class="meta" style="font-size:13px; line-height:1.7;">💡 <b>Detective tip:</b> Jhoot pakarna achi baat hai, magar har jhoota qatil nahi hota. Qatil wohi hai jis ke paas <b>motive + means + opportunity</b> teenon hon.</p></div>`;
+  document.querySelectorAll("[data-unpin]").forEach(b=>b.onclick=()=>{
+    S.pinned=S.pinned.filter(x=>x!==b.dataset.unpin); save(); renderBoard(); renderProgress();
+  });
+}
+/* ---------- accuse & verdict ---------- */
+function renderAccuse(){
+  if(S.done){ show("verdict"); return; }
+  const ok=canAccuse(S);
+  const evN=S.examined.length, qN=askedCount(S), qT=totalQuestions();
+  let html=`<h2 class="sec">⚖️ Ilzaam — The Accusation</h2>
+  <p class="sec-sub" style="color:var(--red); font-weight:600;">Sirf EK mauqa. Soch samajh kar.</p>
+  <div class="card">
+    <div class="checkline ${evN>=EVIDENCE.length?'done':''}"><span class="ck">${evN>=EVIDENCE.length?'✔':''}</span> Saboot mukammal: ${evN}/${EVIDENCE.length}</div>
+    <div class="checkline ${qN>=qT?'done':''}"><span class="ck">${qN>=qT?'✔':''}</span> Tafteesh mukammal: ${qN}/${qT} sawal</div>
+    <div class="checkline ${S.found.length>0?'done':''}"><span class="ck">${S.found.length>0?'✔':''}</span> Jhoot pakray: ${S.found.length}/5 ${S.found.length?"(+"+S.found.length*100+" pts)":""}</div>
+  </div>`;
+  if(!ok){
+    html+=`<div class="card"><p>Ilzaam ka tab khulega jab <b>saray saboot</b> parh liye hon aur <b>saray sawal</b> poochh liye hon. Checklist upar dekho — jo reh gaya, wahan jao.</p>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="show('evidence')">Saboot dekho</button><button class="btn btn-ghost" onclick="show('ask')">Sawal karo</button></div></div>`;
+  } else {
+    html+=`
+    <h3 style="font-family:var(--serif);">1. Qatil kaun hai?</h3>
+    <div class="pickgrid" id="pk-sus">${SUSPECTS.map(s=>`<button class="pick ${S.accused===s.id?'sel':''}" data-a="sus" data-v="${s.id}"><div style="display:flex;gap:10px;align-items:center;"><div class="avatar" style="background:${s.color};width:40px;height:40px;font-size:15px;">${s.init}</div><div><h4>${s.name}</h4><div class="meta">${s.role}</div></div></div></button>`).join("")}</div>
+    <h3 style="font-family:var(--serif);">2. Tareeqa kya tha?</h3>
+    <div class="pickgrid" id="pk-met">${METHODS.map((m,i)=>`<button class="pick ${S.method===i?'sel':''}" data-a="met" data-v="${i}"><h4 style="font-size:14px;">${m}</h4></button>`).join("")}</div>
+    <h3 style="font-family:var(--serif);">3. Motive kya tha?</h3>
+    <div class="pickgrid" id="pk-mot">${MOTIVES.map((m,i)=>`<button class="pick ${S.motive===i?'sel':''}" data-a="mot" data-v="${i}"><h4 style="font-size:14px;">${m}</h4></button>`).join("")}</div>
+    <div class="btn-row"><button class="btn btn-red" id="do-accuse" ${(S.accused!==null&&S.method!==null&&S.motive!==null)?"":"disabled"}>⚖️ ILZAAM LAGAO</button></div>
+    <p class="meta">Qatil durust = 200 pts &bull; Tareeqa = 50 &bull; Motive = 50. Ghalat ilzaam par bhi khel khatam — magar score bachta hai.</p>`;
+  }
+  $("scr-accuse").innerHTML=html;
+  document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
+    const a=b.dataset.a, v=b.dataset.v;
+    if(a==="sus") S.accused=v; else if(a==="met") S.method=+v; else S.motive=+v;
+    save(); renderAccuse();
+  });
+  const da=$("do-accuse");
+  if(da) da.onclick=()=>{
+    openModal(`<span class="stamp">Aakhri mauqa</span><h3 style="margin:8px 0;">Pakka ilzaam lagana hai?</h3>
+    <p>Tum keh rahe ho: <b>${getSus(S.accused).name}</b> ne <b>${METHODS[S.method]}</b> se, <b>${MOTIVES[S.motive]}</b> ki wajah se qatl kiya. Is ke baad koi wapsi nahi.</p>
+    <div class="btn-row"><button class="btn btn-red" id="m-confirm">Haan, ilzaam lagao</button><button class="btn btn-ghost" onclick="closeModal()">Abhi nahi</button></div>`);
+    $("m-confirm").onclick=()=>{ S.done=true; save(); closeModal(); show("verdict"); renderProgress(); };
+  };
+}
+function renderVerdict(){
+  const v=calcVerdict(S), ks=getSus(KILLER);
+  const shareTxt=`Maine KHOONI MEHNDI solve kiya!\nRank: ${v.rank} (${v.score} pts)\nJhoot pakray: ${S.found.length}/5\n${v.killerOk?"Qatil bhi pakra ✔":"Qatil ghalat ✘"}\nTum kar sakte ho?`;
+  $("scr-verdict").innerHTML=`
+  <div class="verdict-hero">
+    ${v.killerOk?'<span class="stamp green" style="font-size:14px;">Case Solved</span>':'<span class="stamp" style="font-size:14px;">Ghalat Ilzaam</span>'}
+    <div class="big">${v.killerOk?"Qatil pakra gaya!":"Qatil azaad ghoom raha hai…"}</div>
+    <p class="meta">Tumhara ilzaam: <b>${getSus(S.accused).name}</b> &bull; Asal qatil: <b>${ks.name}</b></p>
+  </div>
+  <div class="rankcard">
+    <div class="meta">TUMHARA RANK</div>
+    <div class="rk">${v.rank}</div>
+    <div class="scorebreak">${v.brk.map(b=>`${b.label} .... ${b.pts>0?"+":""}${b.pts}`).join("<br>")}<br><b>TOTAL .... ${v.score} pts</b></div>
+    <div class="btn-row" style="justify-content:center;"><button class="btn btn-gold" id="share-btn">📤 Rank share karo</button></div>
+  </div>
+  <h2 class="sec">Poori kahani — cited solution</h2>
+  <div class="card solstep"><h3>🔪 Qatil: ${ks.name} (${ks.role})</h3>
+    <p>Kami ne 3 mah me company se <b>Rs. 2.3 crore</b> churaye <span class="cite">[e13 bank statements]</span>. Dani ne mehndi wali shaam 5:40 PM par email draft kiya: <i>“Shaadi ke baad hum police ke paas jayenge”</i> <span class="cite">[e14]</span>. Sharmindagi aur jail ke dar ne dosti ko qatl me badal diya.</p></div>
+  <div class="card solstep"><h3>☠️ Tareeqa: neend ki goliyan sherbet me</h3>
+    <p>Kami ki apni prescription — <b>Zolpidem 10mg, 30 tablets</b>; gari se mili botal me 8 ghaib <span class="cite">[e15]</span>. Lab ne glass me isi brand ki <b>pisi hui scored tablets</b> payin <span class="cite">[e3]</span>. 9:38–9:45 jab waiter break par tha, Kami ne goliyan Dani ke kewra-sherbet me milayen <span class="cite">[e7]</span>. Meetha sherbet karwahat chhupa gaya; maut 10:45–11:15 ke darmiyan <span class="cite">[e4]</span>.</p></div>
+  <div class="card solstep"><h3>🤥 Jhooti alibi — do azaad saboot</h3>
+    <p>Kami ka dawa: <i>“dance floor par tha.”</i> Magar <b>9:42 PM ki photo</b> use drinks table ke paas dikhati hai <span class="cite">[e5]</span> — aur <b>waiter</b> ne use wahin dekha <span class="cite">[e7]</span>. Do azaad saboot, ek hi jhoot.</p></div>
+  <div class="card solstep"><h3>✅ Be-gunah kyun bachte hain</h3>
+    <p><b>Areeba</b> — 9:30–10:05 musalsal stage par, camera kabhi band nahi hua <span class="cite">[e12]</span>.<br>
+    <b>Bilal</b> — jhagra hua tha (usne chhupaya), magar 9:38–9:52 DJ se phone par, tower location farmhouse <span class="cite">[e11]</span>.<br>
+    <b>Sana</b> — dhamki di thi (gussa), magar 9:35–9:55 main gate par delivery le rahi thi <span class="cite">[e10]</span>.<br>
+    <b>Farah</b> — 9:30–10:00 kitchen me, teen gawah <span class="cite">[e8]</span>; neend ki goliyon tak rasai hi nahi.</p></div>
+  <div class="card" style="background:var(--paper2);"><p class="meta" style="font-size:13px; line-height:1.7;">💡 <b>Sabaq:</b> Sana aur Bilal ne jhoot bola tha — magar jhoot qatl nahi hota. Asal detective <b>motive + means + opportunity</b> teenon jorta hai.</p></div>
+  <div class="btn-row"><button class="btn" onclick="if(confirm('Nayi shuruaat? Score reset ho jayega.')){localStorage.removeItem(LSKEY);location.reload();}">🔄 Dobara khelo</button></div>`;
+  $("share-btn").onclick=async()=>{
+    try{ await navigator.clipboard.writeText(shareTxt); toast("📋 Copy ho gaya — doston ko bhejo!"); }
+    catch(e){ openModal(`<h3>Share karo</h3><div class="doc">${shareTxt}</div><div class="btn-row"><button class="btn btn-ghost" onclick="closeModal()">Band karo</button></div>`); }
+  };
+}
+function showHint(){
+  const left=[0,1,2].filter(i=>!S.hints.includes(i));
+  if(!left.length){ toast("Hints khatam! Ab khud detective bano 🔍"); return; }
+  openModal(`<span class="stamp gray">Hint</span><h3 style="margin:8px 0;">Madad chahiye?</h3>
+  <p>Har hint <b>-25 pts</b> kaate gi. Bachi hui: <b>${left.length}</b></p>
+  <div class="btn-row"><button class="btn btn-gold" id="m-hint">Hint lo (-25)</button><button class="btn btn-ghost" onclick="closeModal()">Rehne do</button></div>`);
+  $("m-hint").onclick=()=>{
+    const i=left[0]; S.hints.push(i); save(); closeModal(); renderProgress();
+    openModal(`<span class="stamp gray">Hint ${S.hints.length}/3</span><div class="card" style="margin-top:10px;"><p style="font-size:15px; line-height:1.6;">💡 ${HINTS[i]}</p></div><div class="btn-row"><button class="btn" onclick="closeModal()">Samajh gaya</button></div>`);
+  };
+}
+/* ---------- init ---------- */
+if(typeof document!=="undefined"){
+  $("modal-ov").addEventListener("click",e=>{ if(e.target.id==="modal-ov") closeModal(); });
+  renderNav(); renderProgress(); show("brief");
+}
+
+</script>
+</body>
+</html>
